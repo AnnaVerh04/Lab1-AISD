@@ -15,6 +15,7 @@ public:
 	T& operator()(int x, int y);
 	Image& operator+(T a);
 	Image& operator*(T a);
+	Image& operator(Image a);
 
 };
 
@@ -68,6 +69,19 @@ Image<T>& Image<T>::operator*(T a) {
 	for (int i = 0; i < size_x; i++) {
 		for (int j = 0; i < size_y; j++) {
 			result.image[i][j] = image[x][j] * a;
+		}
+	}
+	return result;
+}
+
+Image<bool>& Image<bool>::operator*(Image<bool> a){
+	if (a.size_x != size_x || a.size_y != size_y) {
+		//исключение 
+	}
+	Image<bool> result(size_x, size_y, false);
+	for (int i = 0; i < size_x; i++) {
+		for (int j = 0; j < size_y; j++) {
+			result.image[i][j] = (bool)(image[i][j] & a.image[i][j]);
 		}
 	}
 	return result;
