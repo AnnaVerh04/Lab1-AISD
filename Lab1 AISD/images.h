@@ -1,5 +1,9 @@
 #include <random>
-#include <time.h>
+#include <fstream>
+#include <limits>
+#include <stdexcept>
+
+using namespace std;
 
 template <typename T>
 class Image
@@ -8,6 +12,7 @@ private:
 	int size_x;
 	int size_y;
 	T** image;
+	const double eps = 0.0001;
 
 public:
 	Image(int x, int y, bool flag);
@@ -19,7 +24,43 @@ public:
 	Image& operator!();
 	bool operator==(Image a);
 	double image_koefficient();
+
+	friend ostream& operator<<(ostream& os, Image<T>& I)
+	{
+		for (int i = 0; i < I.size_x; i++) {
+			for (int j = 0; j < I.size_y; j++) {
+				os << I.image_koefficient[i][j] << " ";
+			}
+			os << "\n";
+		}
+		return os;
+	}
 };
+
+Image<bool>::Image(int x, int y, bool flag)
+{
+	image = new bool* [x];
+	for (int i = 0; i < x; i++) {
+		image[i] = new bool[y];
+	}
+	size_x = x;
+	size_y = y;
+	if (flag == true)
+	{
+		for (int i = 0; i < x; i++) {
+			for (int j = 0; j < y; j++) {
+				image[i][j] = rand() % 2;
+			}
+		}
+	}
+	else {
+		for (int i = 0; i < x; i++) {
+			for (int j = 0; j < y; j++) {
+				image[i][j] = 0;
+			}
+		}
+	}
+}
 
 template <typename T>
 Image<T>::Image(int x, int y, bool flag)
@@ -70,7 +111,7 @@ Image<T>& Image<T>::operator*(T a) {
 	Image<T> result(size_x, size_y, false);
 	for (int i = 0; i < size_x; i++) {
 		for (int j = 0; i < size_y; j++) {
-			result.image[i][j] = image[x][j] * a;
+			result.image[i][j] = image[i][j] * a;
 		}
 	}
 	return result;
@@ -78,7 +119,7 @@ Image<T>& Image<T>::operator*(T a) {
 
 Image<bool>& Image<bool>::operator*(Image<bool> a){
 	if (a.size_x != size_x || a.size_y != size_y) {
-		//исключение 
+		throw runtime_error("incorrect size");
 	}
 	Image<bool> result(size_x, size_y, false);
 	for (int i = 0; i < size_x; i++) {
@@ -89,9 +130,23 @@ Image<bool>& Image<bool>::operator*(Image<bool> a){
 	return result;
 }
 
+template <typename T>
+Image<T>& Image<T>::operator*(Image<T> a) {
+	if (a.size_x != size_x || a.size_y != size_y) {
+		throw runtime_error("incorrect size");
+	}
+	Image<T> result(size_x, size_y, false);
+	for (int i = 0; i < size_x; i++) {
+		for (int j = 0; j < size_y; j++) {
+			result.image[i][j] = (T)(image[i][j] * a.image[i][j]);
+		}
+	}
+	return result;
+}
+
 Image<bool>& Image<bool>::operator+(Image<bool> a) {
 	if (a.size_x != size_x || a.size_y != size_y) {
-		//исключение 
+		throw runtime_error("incorrect size");
 	}
 	Image<bool>* result = new Image<bool>(size_x, size_y, false);
 	for (int i = 0; i < size_x; i++) {
@@ -100,6 +155,20 @@ Image<bool>& Image<bool>::operator+(Image<bool> a) {
 		}
 	}
 	return *result;
+}
+
+template <typename T>
+Image<T>& Image<T>::operator+(Image<T> a) {
+	if (a.size_x != size_x || a.size_y != size_y) {
+		throw runtime_error("incorrect size");
+	}
+	Image<bool>* result = new Image<bool>(size_x, size_y, false);
+	for (int i = 0; i < size_x; i++) {
+		for (int j = 0; j < size_y; j++) {
+			result->image[i][j] = (T)(image[i][j] + a.image[i][j]);
+		}
+	}
+	return result;
 }
 
 Image<bool>& Image<bool>::operator!() {
@@ -111,21 +180,33 @@ Image<bool>& Image<bool>::operator!() {
 	return *this;
 }
 
-template <typename T>
-bool Image<T>::operator==(Image<T> a)
-{
-	if (a.size_x != size_x || a.size_y != size_y) {
-		//искл
-	}
+Image<int>& Image<int>::operator!() {
 	for (int i = 0; i < size_x; i++) {
 		for (int j = 0; j < size_y; j++) {
-			if (a.image[i][j] != image[i][j]) {
-				return false;
-			}
+			image[i][j] = INT_MAX - image[i][j] + 1;
 		}
 	}
-	return true;
+	return *this;
 }
+
+Image<short>& Image<short>::operator!() {
+	for (int i = 0; i < size_x; i++) {
+		for (int j = 0; j < size_y; j++) {
+			image[i][j] = SHRT_MAX - image[i][j] + 1;
+		}
+	}
+	return *this;
+}
+
+Image<double>& Image<double>::operator!() {
+	for (int i = 0; i < size_x; i++) {
+		for (int j = 0; j < size_y; j++) {
+			image[i][j] = DBL_MAX - image[i][j] + 1;
+		}
+	}
+	return *this;
+}
+
 
 double Image<bool>::image_koefficient() {
 	double sum = 0;
@@ -165,4 +246,35 @@ double Image<double>::image_koefficient() {
 		}
 	}
 	return sum / (size_x * size_y * DBL_MAX);
+}
+
+template <typename T>
+bool Image<T>::operator==(Image<T> a)
+{
+	if (a.size_x != size_x || a.size_y != size_y) {
+		throw runtime_error("incorrect size");
+	}
+	for (int i = 0; i < size_x; i++) {
+		for (int j = 0; j < size_y; j++) {
+			if (a.image[i][j] != image[i][j]) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+bool Image<double>::operator==(Image a)
+{
+	if (a.size_x != size_x || a.size_y != size_y) {
+		throw runtime_error("incorrect size");
+	}
+	for (int i = 0; i < size_x; i++) {
+		for (int j = 0; j < size_y; j++) {
+			if (!(a.image[i][j] - image[i][j] <= eps || image[i][j] - a.image[i][j] <= eps)) {
+				return false;
+			}
+		}
+	}
+	return true;
 }
