@@ -1,13 +1,11 @@
 #include <iostream>
 #include "images.h"
 #include <random>
-#include <time.h>
 using namespace std;
 
 int main()
 {
-
-    /*int size_x, size_y;
+    int size_x, size_y;
     cout << "Enter the dimensions of the field" << endl;
     cout << "a: ";
     cin >> size_x;
@@ -32,32 +30,8 @@ int main()
     }
     cout << a;
    
-    */
     
-    Image<double> a(3, 2, true);
-    Image<double> b(3, 2, true);
-
-    try {
-        Image<double> c = a + b;
-        cout << "a:\n" << a << "\nb:\n" << b << "\na+b:\n" << c;
-    }
-    catch (image_exception) {
-        cout << "Incorrect sizes";
-        return 0;
-    }
-
-   /* Image<int> a(3, 2, true);
-    Image<int> b(3, 2, true);
-
-    try {
-        Image<int> c = a * b;
-        cout << "a:\n" << a << "\nb:\n" << b << "\na*b:\n" << c;
-    }
-    catch (image_exception) {
-        cout << "Incorrect sizes";
-        return 0;
-    }*/
-
+    
     /*Image<bool> a(3, 2, true);
     Image<bool> b(3, 2, true);
 

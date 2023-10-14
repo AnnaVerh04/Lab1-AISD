@@ -1,6 +1,5 @@
 #include <random>
 #include <time.h>
-#include <fstream>
 #include <limits>
 
 
@@ -20,12 +19,13 @@ public:
 	Image(int x, int y, bool flag);
 	T& operator()(int x, int y);
 	bool operator==(Image a);
-	Image& operator*(Image a);
-	Image& operator+(Image a);
-	Image& operator+(T a);
-	Image& operator*(T a);
+	Image& operator*(const Image& a);
+	Image& operator+(const Image& a);
+	Image& operator+(const T a);
+	Image& operator*(const T a);
 	Image& operator!();
-	double image_koefficient();
+	float Image<T>::image_koefficient() const;
+	/*double image_koefficient();*/
 
 
 	friend std::ostream& operator<<(std::ostream& os, Image<T>& I)
@@ -84,7 +84,7 @@ Image<T>::Image(int x, int y, bool flag)
 	{
 		for (int i = 0; i < x; i++) {
 			for (int j = 0; j < y; j++) {
-				image[i][j] = rand();
+				image[i][j] = rand()%100;
 			}
 		}
 	}
@@ -107,7 +107,7 @@ T& Image<T>::operator()(int x, int y)
 
 
 template <typename T>
-Image<T>& Image<T>::operator+(T a) {
+Image<T>& Image<T>::operator+(const T a) {
 	Image<T> result(size_x, size_y, false);
 	for (int i = 0; i < size_x; i++) {
 		for (int j = 0; j < size_y; j++) {
@@ -119,7 +119,7 @@ Image<T>& Image<T>::operator+(T a) {
 
 
 template <typename T>
-Image<T>& Image<T>::operator*(T a) {
+Image<T>& Image<T>::operator*(const T a) {
 	Image<T> result(size_x, size_y, false);
 	for (int i = 0; i < size_x; i++) {
 		for (int j = 0; j < size_y; j++) {
@@ -130,7 +130,7 @@ Image<T>& Image<T>::operator*(T a) {
 }
 
 
-Image<bool>& Image<bool>::operator*(Image<bool> a) {
+Image<bool>& Image<bool>::operator*(const Image<bool>& a) {
 	if (a.size_x != size_x || a.size_y != size_y) {
 		throw image_exception();
 	}
@@ -146,7 +146,7 @@ Image<bool>& Image<bool>::operator*(Image<bool> a) {
 
 
 template <typename T>
-Image<T>& Image<T>::operator*(Image<T> a) {
+Image<T>& Image<T>::operator*(const Image<T>& a) {
 	if (a.size_x != size_x || a.size_y != size_y) {
 		throw image_exception();
 	}
@@ -162,7 +162,7 @@ Image<T>& Image<T>::operator*(Image<T> a) {
 
 
 
-Image<bool>& Image<bool>::operator+(Image<bool> a) {
+Image<bool>& Image<bool>::operator+(const Image<bool>& a) {
 	if (a.size_x != size_x || a.size_y != size_y) {
 		throw image_exception();
 	}
@@ -179,7 +179,7 @@ Image<bool>& Image<bool>::operator+(Image<bool> a) {
 
 
 template <typename T>
-Image<T>& Image<T>::operator+(Image<T> a) {
+Image<T>& Image<T>::operator+(const Image<T>& a) {
 	if (a.size_x != size_x || a.size_y != size_y) {
 		throw image_exception();
 	}
@@ -194,100 +194,77 @@ Image<T>& Image<T>::operator+(Image<T> a) {
 }
 
 
-
-Image<bool>& Image<bool>::operator!() {
+template <typename T>
+Image<T>& Image<T>::operator!() {
 	for (int i = 0; i < size_x; i++) {
 		for (int j = 0; j < size_y; j++) {
-			image[i][j] = !image[i][j];
+			image[i][j] = -1*image[i][j];
 		}
 	}
 	return *this;
 }
 
+template <typename T> 
+float Image<T>::image_koefficient() const {
+	float sum = 0.0f;
 
-
-
-Image<int>& Image<int>::operator!() {
-	for (int i = 0; i < size_x; i++) {
-		for (int j = 0; j < size_y; j++) {
-			image[i][j] = INT_MAX - image[i][j] + 1;
+	for (int i = 0; i < size_x; i++)
+	{
+		for (int j = 0; j < size_y; j++)
+		{
+			sum += static_cast<T>(image[i][j]);
 		}
 	}
-	return *this;
+	float maxVal = std::numeric_limits<T>::max();
+	float fillKoef = sum / (size_x * size_y * maxVal);
+	
+	return abs(fillKoef);
 }
 
-
-
-Image<short>& Image<short>::operator!() {
-	for (int i = 0; i < size_x; i++) {
-		for (int j = 0; j < size_y; j++) {
-			image[i][j] = SHRT_MAX - image[i][j] + 1;
-		}
-	}
-	return *this;
-}
-
-
-Image<double>& Image<double>::operator!() {
-	for (int i = 0; i < size_x; i++) {
-		for (int j = 0; j < size_y; j++) {
-			image[i][j] = DBL_MAX - image[i][j] + 1;
-		}
-	}
-	return *this;
-}
-
-
-
-
-
-double Image<bool>::image_koefficient() {
-	double sum = 0;
-	for (int i = 0; i < size_x; i++) {
-		for (int j = 0; j < size_y; j++) {
-			sum += image[i][j];
-		}
-	}
-
-	return sum / (size_x * size_y * 1);
-}
-
-
-
-double Image<int>::image_koefficient() {
-	double sum = 0;
-	for (int i = 0; i < size_x; i++) {
-		for (int j = 0; j < size_y; j++) {
-			sum += image[i][j];
-		}
-	}
-
-	return sum / (size_x * size_y * INT_MAX);
-}
-
-
-double Image<short>::image_koefficient() {
-	double sum = 0;
-	for (int i = 0; i < size_x; i++) {
-		for (int j = 0; j < size_y; j++) {
-			sum += image[i][j];
-		}
-	}
-
-	return sum / (size_x * size_y * SHRT_MAX);
-}
-
-
-double Image<double>::image_koefficient() {
-	double sum = 0;
-	for (int i = 0; i < size_x; i++) {
-		for (int j = 0; j < size_y; j++) {
-			sum += image[i][j];
-		}
-	}
-
-	return sum / (size_x * size_y * DBL_MAX);
-}
+//double Image<bool>::image_koefficient() {
+//	double sum = 0;
+//	for (int i = 0; i < size_x; i++) {
+//		for (int j = 0; j < size_y; j++) {
+//			sum += image[i][j];
+//		}
+//	}
+//
+//	return sum / (size_x * size_y * 1);
+//}
+//
+//double Image<short>::image_koefficient() {
+//	double sum = 0;
+//	for (int i = 0; i < size_x; i++) {
+//		for (int j = 0; j < size_y; j++) {
+//			sum += image[i][j];
+//		}
+//	}
+//
+//	return sum / (size_x * size_y * SHRT_MAX);
+//}
+//
+//
+//double Image<float>::image_koefficient() {
+//	double sum = 0;
+//	for (int i = 0; i < size_x; i++) {
+//		for (int j = 0; j < size_y; j++) {
+//			sum += image[i][j];
+//		}
+//	}
+//
+//	return sum / (size_x * size_y * FLT_MAX);
+//}
+//
+//double Image<char>::image_koefficient() {
+//	double sum = 0;
+//	for (int i = 0; i < size_x; i++) {
+//		for (int j = 0; j < size_y; j++) {
+//			sum += image[i][j];
+//		}
+//	}
+//
+//	return sum / (size_x * size_y * CHAR_MAX);
+//}
 
 
 template <typename T>
@@ -309,7 +286,7 @@ bool Image<T>::operator==(Image<T> a)
 
 
 
-bool Image<double>::operator==(Image a)
+bool Image<float>::operator==(Image a)
 {
 	if (a.size_x != size_x || a.size_y != size_y) {
 		throw image_exception();
