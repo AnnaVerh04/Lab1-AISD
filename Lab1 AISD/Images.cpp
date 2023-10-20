@@ -32,7 +32,7 @@ int main()
    
     
     
-    /*Image<bool> a(3, 2, true);
+   /* Image<bool> a(3, 2, true);
     Image<bool> b(3, 2, true);
 
     try {
@@ -42,6 +42,5 @@ int main()
     catch (image_exception) {
         cout << "Incorrect sizes";
         return 0;
-    }
-}*/
+    }*/
 }
